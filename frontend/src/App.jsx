@@ -1,157 +1,302 @@
-// src/App.jsx
-import { useState } from "react";
-import { FileText, X } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+
+const API = "http://127.0.0.1:8000";
 
 export default function App() {
-  const [files, setFiles] = useState([]);
-  const [showModal, setShowModal] = useState(false);
-  const [newFile, setNewFile] = useState({
-    name: "",
-    language: "javascript",
-    content: "",
-  });
+  const [folders, setFolders] = useState([]);
+  const [currentFolder, setCurrentFolder] = useState(null);
+  const [newFolderName, setNewFolderName] = useState("");
+  const [newFile, setNewFile] = useState({ name: "", language: "python", content: "" });
+  const [editFile, setEditFile] = useState(null);
+  const [searchName, setSearchName] = useState("");
 
-  const handleSave = () => {
+  const languages = ["python", "javascript", "java", "c++", "c#", "go", "ruby", "php"];
+
+  // 📂 Fetch all folders
+  const fetchFolders = async () => {
+    const res = await axios.get(`${API}/folders`);
+    setFolders(res.data);
+  };
+
+  useEffect(() => {
+    fetchFolders();
+  }, []);
+
+  // 📂 Open folder
+  const openFolder = async (id) => {
+    const res = await axios.get(`${API}/folders/${id}`);
+    setCurrentFolder(res.data);
+  };
+
+  // 📂 Create folder
+  const createFolder = async () => {
+    if (!newFolderName.trim()) return;
+    await axios.post(`${API}/folders`, { name: newFolderName, parent_id: currentFolder?.id });
+    setNewFolderName("");
+    currentFolder ? openFolder(currentFolder.id) : fetchFolders();
+  };
+
+  // 📄 Create file
+  const createFile = async () => {
     if (!newFile.name.trim()) return;
-    setFiles([...files, { ...newFile, id: Date.now() }]);
-    setNewFile({ name: "", language: "javascript", content: "" });
-    setShowModal(false);
+    await axios.post(`${API}/folders/${currentFolder.id}/files`, newFile);
+    setNewFile({ name: "", language: "python", content: "" });
+    openFolder(currentFolder.id);
+  };
+
+  // ✏️ Edit file
+  const updateFile = async () => {
+    await axios.put(`${API}/folders/${currentFolder.id}/files/${editFile.id}`, editFile);
+    setEditFile(null);
+    openFolder(currentFolder.id);
+  };
+
+  // ❌ Delete folder
+  const deleteFolder = async (id, parentId) => {
+    if (!window.confirm("Are you sure you want to delete this folder?")) return;
+    await axios.delete(`${API}/folders/${id}`);
+    parentId ? openFolder(parentId) : fetchFolders();
+  };
+
+  // ❌ Delete file
+  const deleteFile = async (folderId, fileId) => {
+    if (!window.confirm("Are you sure you want to delete this file?")) return;
+    await axios.delete(`${API}/folders/${folderId}/files/${fileId}`);
+    openFolder(folderId);
+  };
+
+  // 🔍 Search folder
+  const searchFolder = async () => {
+    try {
+      const res = await axios.get(`${API}/folders/search/${searchName}`);
+      setCurrentFolder(res.data);
+    } catch {
+      alert("Folder not found!");
+    }
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900">
-      {/* Navbar */}
-      <header className="flex justify-between items-center px-6 py-4 border-b">
-        <h1 className="text-xl font-bold flex items-center space-x-2">
-          <span>{"</>"}</span>
-          <span>CodeShare</span>
-        </h1>
-        <div className="space-x-3">
-          <button className="px-4 py-2 border rounded-md bg-white hover:bg-gray-100">
-            Browse Public
-          </button>
+    <div className="min-h-screen bg-gray-50 text-gray-800 flex flex-col items-center p-6">
+      <h1 className="text-3xl font-bold text-blue-600 mb-6">📂 Lab Code</h1>
+
+      {/* Search Bar */}
+      <div className="flex gap-2 w-full max-w-2xl mb-6">
+        <input
+          value={searchName}
+          onChange={(e) => setSearchName(e.target.value)}
+          placeholder="🔍 Search folder by name"
+          className="flex-1 px-3 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 outline-none"
+        />
+        <button
+          onClick={searchFolder}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
+        >
+          Search
+        </button>
+      </div>
+
+      {/* Back Buttons */}
+      {currentFolder && (
+        <div className="flex gap-3 mb-6">
           <button
-            onClick={() => setShowModal(true)}
-            className="px-4 py-2 rounded-md bg-black text-white hover:bg-gray-800"
+            className="bg-gray-400 text-white px-4 py-2 rounded-lg shadow hover:bg-gray-500"
+            onClick={() => setCurrentFolder(null)}
           >
-            + Create File
+            ⬅ Back to Root
           </button>
-        </div>
-      </header>
-
-      {/* Search + File Section */}
-      <main className="px-6 py-8">
-        {/* Search bar */}
-        <div className="max-w-4xl mx-auto">
-          <div className="flex">
-            <input
-              type="text"
-              placeholder="Search files by name or content..."
-              className="flex-1 border rounded-l-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-gray-300"
-            />
-            <button className="px-4 py-2 bg-gray-200 rounded-r-md hover:bg-gray-300">
-              Search
-            </button>
-          </div>
-        </div>
-
-        {/* Files Section */}
-        <div className="max-w-4xl mx-auto mt-8">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">All Files</h2>
+          {currentFolder.parent_id && (
             <button
-              onClick={() => setShowModal(true)}
-              className="px-3 py-1 border rounded-md bg-white hover:bg-gray-100"
+              className="bg-gray-500 text-white px-4 py-2 rounded-lg shadow hover:bg-gray-600"
+              onClick={() => openFolder(currentFolder.parent_id)}
             >
-              + Add File
+              ⬅ Back to Parent
             </button>
-          </div>
+          )}
+        </div>
+      )}
 
-          {/* Empty State */}
-          {files.length === 0 ? (
-            <div className="border rounded-lg py-16 flex flex-col items-center justify-center text-gray-500">
-              <FileText className="w-12 h-12 mb-3" />
-              <p className="font-medium">No files yet</p>
-              <p className="text-sm">Create your first code snippet to get started.</p>
-            </div>
-          ) : (
+      {/* Folder View */}
+      <div className="w-full max-w-4xl bg-white shadow-lg rounded-xl p-6">
+        {!currentFolder ? (
+          <div>
+            <h2 className="text-xl font-semibold mb-4">📁 Root Folders</h2>
             <div className="grid gap-3">
-              {files.map((file) => (
+              {folders.map((f) => (
                 <div
-                  key={file.id}
-                  className="p-4 border rounded-lg bg-gray-50 hover:bg-gray-100"
+                  key={f.id}
+                  className="flex justify-between items-center p-4 bg-gray-100 rounded-lg shadow hover:bg-gray-200"
                 >
-                  <h3 className="font-medium">{file.name}</h3>
-                  <p className="text-sm text-gray-600">{file.language}</p>
-                  <pre className="mt-2 bg-white p-2 rounded border text-sm overflow-x-auto">
-                    {file.content}
-                  </pre>
+                  <span className="cursor-pointer font-medium" onClick={() => openFolder(f.id)}>
+                    📂 {f.name}
+                  </span>
+                  <button
+                    onClick={() => deleteFolder(f.id, null)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    ❌
+                  </button>
                 </div>
               ))}
             </div>
-          )}
+          </div>
+        ) : (
+          <div>
+            <h2 className="text-xl font-semibold mb-4">📁 {currentFolder.name}</h2>
+
+            {/* Subfolders */}
+            <h3 className="text-lg font-medium mb-2">📂 Subfolders</h3>
+            <div className="grid gap-3 mb-6">
+              {currentFolder.subfolders.map((sf) => (
+                <div
+                  key={sf.id}
+                  className="flex justify-between items-center p-4 bg-gray-100 rounded-lg shadow hover:bg-gray-200"
+                >
+                  <span className="cursor-pointer font-medium" onClick={() => openFolder(sf.id)}>
+                    📂 {sf.name}
+                  </span>
+                  <button
+                    onClick={() => deleteFolder(sf.id, currentFolder.id)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    ❌
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Files */}
+            <h3 className="text-lg font-medium mb-2">📄 Files</h3>
+            <div className="grid gap-4 mb-6">
+              {currentFolder.files.map((file) => (
+                <div
+                  key={file.id}
+                  className="p-4 bg-gray-50 border rounded-lg shadow flex justify-between"
+                >
+                  <div className="flex-1">
+                    <div className="font-semibold text-blue-700">
+                      {file.name} <span className="text-gray-500">({file.language})</span>
+                    </div>
+                    <pre className="bg-gray-200 p-2 mt-2 rounded-lg overflow-x-auto text-sm">
+                      {file.content}
+                    </pre>
+                  </div>
+                  <div className="flex flex-col gap-2 ml-4">
+                    <button
+                      onClick={() => setEditFile(file)}
+                      className="bg-yellow-500 text-white px-3 py-1 rounded-lg shadow hover:bg-yellow-600"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => deleteFile(currentFolder.id, file.id)}
+                      className="bg-red-500 text-white px-3 py-1 rounded-lg shadow hover:bg-red-600"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Add File Form */}
+            <div className="p-4 bg-blue-50 border rounded-lg shadow">
+              <h3 className="text-lg font-medium mb-3">➕ Add New File</h3>
+              <input
+                value={newFile.name}
+                onChange={(e) => setNewFile({ ...newFile, name: e.target.value })}
+                placeholder="File name"
+                className="w-full px-3 py-2 mb-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 outline-none"
+              />
+              <select
+                value={newFile.language}
+                onChange={(e) => setNewFile({ ...newFile, language: e.target.value })}
+                className="w-full px-3 py-2 mb-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 outline-none"
+              >
+                {languages.map((lang) => (
+                  <option key={lang} value={lang}>
+                    {lang}
+                  </option>
+                ))}
+              </select>
+              <textarea
+                value={newFile.content}
+                onChange={(e) => setNewFile({ ...newFile, content: e.target.value })}
+                placeholder="File content..."
+                rows="5"
+                className="w-full px-3 py-2 mb-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 outline-none"
+              />
+              <button
+                onClick={createFile}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700"
+              >
+                Add File
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Add Folder Form */}
+      <div className="w-full max-w-2xl mt-6 bg-green-50 border rounded-lg shadow p-4">
+        <h3 className="text-lg font-medium mb-3">➕ Add New Folder</h3>
+        <div className="flex gap-2">
+          <input
+            value={newFolderName}
+            onChange={(e) => setNewFolderName(e.target.value)}
+            placeholder="Folder name"
+            className="flex-1 px-3 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-green-400 outline-none"
+          />
+          <button
+            onClick={createFolder}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700"
+          >
+            Add
+          </button>
         </div>
-      </main>
+      </div>
 
-      {/* Floating Create File Button */}
-      <button
-        onClick={() => setShowModal(true)}
-        className="fixed bottom-6 left-6 px-4 py-2 rounded-md bg-black text-white shadow-lg hover:bg-gray-800"
-      >
-        + Create File
-      </button>
-
-      {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg relative">
-            {/* Close Button */}
-            <button
-              onClick={() => setShowModal(false)}
-              className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
-            >
-              <X size={20} />
-            </button>
-
-            <h2 className="text-lg font-semibold mb-4">Create New File</h2>
-
+      {/* Edit File Modal */}
+      {editFile && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-96">
+            <h3 className="text-lg font-semibold mb-4">✏️ Edit File</h3>
             <input
-              type="text"
-              placeholder="File Name"
-              value={newFile.name}
-              onChange={(e) => setNewFile({ ...newFile, name: e.target.value })}
-              className="w-full border rounded-md px-3 py-2 mb-3"
+              value={editFile.name}
+              onChange={(e) => setEditFile({ ...editFile, name: e.target.value })}
+              className="w-full px-3 py-2 mb-3 border rounded-lg shadow-sm"
             />
-
             <select
-              value={newFile.language}
-              onChange={(e) =>
-                setNewFile({ ...newFile, language: e.target.value })
-              }
-              className="w-full border rounded-md px-3 py-2 mb-3"
+              value={editFile.language}
+              onChange={(e) => setEditFile({ ...editFile, language: e.target.value })}
+              className="w-full px-3 py-2 mb-3 border rounded-lg shadow-sm"
             >
-              <option value="javascript">JavaScript</option>
-              <option value="python">Python</option>
-              <option value="java">Java</option>
-              <option value="c">C</option>
-              <option value="cpp">C++</option>
+              {languages.map((lang) => (
+                <option key={lang} value={lang}>
+                  {lang}
+                </option>
+              ))}
             </select>
-
             <textarea
-              placeholder="Write your code here..."
-              value={newFile.content}
-              onChange={(e) =>
-                setNewFile({ ...newFile, content: e.target.value })
-              }
-              className="w-full border rounded-md px-3 py-2 mb-3 h-40 font-mono"
+              value={editFile.content}
+              onChange={(e) => setEditFile({ ...editFile, content: e.target.value })}
+              rows="5"
+              className="w-full px-3 py-2 mb-3 border rounded-lg shadow-sm"
             />
-
-            <button
-              onClick={handleSave}
-              className="w-full bg-black text-white py-2 rounded-md hover:bg-gray-800"
-            >
-              Save File
-            </button>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={updateFile}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700"
+              >
+                Save
+              </button>
+              <button
+                onClick={() => setEditFile(null)}
+                className="bg-gray-400 text-white px-4 py-2 rounded-lg shadow hover:bg-gray-500"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
