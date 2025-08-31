@@ -1,9 +1,17 @@
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from motor.motor_asyncio import AsyncIOMotorClient
+from bson import ObjectId
 
-DATABASE_URL = "sqlite:///./files.db"
+MONGO_URL = "mongodb://localhost:27017"
+client = AsyncIOMotorClient(MONGO_URL)
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+db = client["code_sharing_app"]  # database name
+folders_collection = db["folders"]
+files_collection = db["files"]
+
+# Helper to convert Mongo _id to str
+def to_dict(doc):
+    if not doc:
+        return None
+    doc["id"] = str(doc["_id"])
+    del doc["_id"]
+    return doc

@@ -11,7 +11,7 @@ export default function App() {
   const [editFile, setEditFile] = useState(null);
   const [searchName, setSearchName] = useState("");
 
-  const languages = ["python", "javascript", "java", "c++", "c#", "go", "ruby", "php"];
+  const languages = ["python", "javascript", "java", "c++", "c#", "go", "ruby", "php", "none"];
 
   // 📂 Fetch all folders
   const fetchFolders = async () => {
@@ -78,10 +78,12 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800 flex flex-col items-center p-6">
-      <h1 className="text-3xl font-bold text-blue-600 mb-6">📂 Lab Code</h1>
+      <h1 className="text-3xl font-bold text-blue-600 mb-6 flex items-center gap-2">
+        <span role="img" aria-label="folder">📂</span> Lab Code
+      </h1>
 
       {/* Search Bar */}
-      <div className="flex gap-2 w-full max-w-2xl mb-6">
+      <div className="flex gap-2 w-full max-w-2xl mb-4">
         <input
           value={searchName}
           onChange={(e) => setSearchName(e.target.value)}
@@ -96,9 +98,28 @@ export default function App() {
         </button>
       </div>
 
+      {/* Add Folder Form - visually enhanced */}
+      <div className="flex flex-col w-full max-w-2xl mb-6">
+        <div className="bg-green-50 border border-green-200 rounded-lg shadow px-4 py-3 flex items-center gap-3">
+          <span className="text-xl text-green-700 font-medium mr-2">➕ Add New Folder</span>
+          <input
+            value={newFolderName}
+            onChange={(e) => setNewFolderName(e.target.value)}
+            placeholder="Folder name"
+            className="flex-1 px-3 py-2 border border-green-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-400 outline-none"
+          />
+          <button
+            onClick={createFolder}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700 font-semibold"
+          >
+            Add
+          </button>
+        </div>
+      </div>
+
       {/* Back Buttons */}
       {currentFolder && (
-        <div className="flex gap-3 mb-6">
+        <div className="flex left-0 right-0 w-full max-w-2xl mx-auto gap-3 mb-6">
           <button
             className="bg-gray-400 text-white px-4 py-2 rounded-lg shadow hover:bg-gray-500"
             onClick={() => setCurrentFolder(null)}
@@ -117,22 +138,28 @@ export default function App() {
       )}
 
       {/* Folder View */}
-      <div className="w-full max-w-4xl bg-white shadow-lg rounded-xl p-6">
+      <div className="flex left-0 right-0 w-full max-w-2xl mx-auto bg-white shadow-lg rounded-xl p-6">
         {!currentFolder ? (
-          <div>
-            <h2 className="text-xl font-semibold mb-4">📁 Root Folders</h2>
-            <div className="grid gap-3">
+          <div className="flex flex-col w-full">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <span role="img" aria-label="folder">📁</span> Root Folders
+            </h2>
+            <div className="flex flex-col w-full gap-3">
               {folders.map((f) => (
                 <div
                   key={f.id}
-                  className="flex justify-between items-center p-4 bg-gray-100 rounded-lg shadow hover:bg-gray-200"
+                  className="flex justify-between items-center p-4 bg-gray-100 rounded-lg shadow hover:bg-gray-200 w-full transition-colors cursor-pointer"
                 >
-                  <span className="cursor-pointer font-medium" onClick={() => openFolder(f.id)}>
-                    📂 {f.name}
+                  <span
+                    className="font-medium flex items-center text-lg"
+                    onClick={() => openFolder(f.id)}
+                    style={{ flex: 1 }}
+                  >
+                    <span className="mr-2">📂</span> {f.name}
                   </span>
                   <button
                     onClick={() => deleteFolder(f.id, null)}
-                    className="text-red-500 hover:text-red-700"
+                    className="text-red-400 hover:text-red-500 text-2xl px-2"
                   >
                     ❌
                   </button>
@@ -235,25 +262,6 @@ export default function App() {
             </div>
           </div>
         )}
-      </div>
-
-      {/* Add Folder Form */}
-      <div className="w-full max-w-2xl mt-6 bg-green-50 border rounded-lg shadow p-4">
-        <h3 className="text-lg font-medium mb-3">➕ Add New Folder</h3>
-        <div className="flex gap-2">
-          <input
-            value={newFolderName}
-            onChange={(e) => setNewFolderName(e.target.value)}
-            placeholder="Folder name"
-            className="flex-1 px-3 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-green-400 outline-none"
-          />
-          <button
-            onClick={createFolder}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700"
-          >
-            Add
-          </button>
-        </div>
       </div>
 
       {/* Edit File Modal */}

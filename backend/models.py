@@ -1,10 +1,16 @@
-from sqlalchemy import Column, Integer, String, Text
-from .database import Base
+from pydantic import BaseModel
+from typing import Optional
 
-class CodeFile(Base):
-    __tablename__ = "codefiles"
+class FileCreate(BaseModel):
+    name: str
+    language: str
+    content: str
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
-    language = Column(String, index=True)
-    content = Column(Text)
+class FileUpdate(BaseModel):
+    name: Optional[str] = None
+    language: Optional[str] = None
+    content: Optional[str] = None
+
+class FolderCreate(BaseModel):
+    name: str
+    parent_id: Optional[str] = None
