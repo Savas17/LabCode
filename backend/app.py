@@ -2,15 +2,16 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pymongo import MongoClient
 from bson import ObjectId
-<<<<<<< HEAD
 import re
-=======
->>>>>>> 7d7965a8a8f79a00a483c955c56ca5b506b3762d
+import os
+from dotenv import load_dotenv
 
+# Load variables from the .env file
+load_dotenv()
 
 # Replace this with your Atlas connection string and db name
-MONGO_URI = "mongodb+srv://Syed_Saquib:6DFiuCI6BNrJkJ9q@cluster0.umlx5az.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-DB_NAME = "LabCode"  # use your DB name here
+MONGO_URI = os.getenv("MONGO_URI")
+DB_NAME = os.getenv("DB_NAME")
 
 
 app = FastAPI()
@@ -66,32 +67,21 @@ def get_folders():
 
 def find_folder_by_name(name: str):
     """
-<<<<<<< HEAD
     Helper to find a single folder by name (case-insensitive partial match)
     """
     # Create case-insensitive regex pattern for partial matching
     pattern = re.compile(re.escape(name), re.IGNORECASE)
     folder = folders_col.find_one({"name": {"$regex": pattern}})
-=======
-    Helper to find a single folder by name (case-sensitive exact match)
-    """
-    folder = folders_col.find_one({"name": name})
->>>>>>> 7d7965a8a8f79a00a483c955c56ca5b506b3762d
     return folder
 
 @app.get("/folders/search/{name}")
 def search_folder(name: str):
     """
-<<<<<<< HEAD
     Search folder by name (case-insensitive, partial match).
-=======
-    Search folder by name and return serialized folder details
->>>>>>> 7d7965a8a8f79a00a483c955c56ca5b506b3762d
     """
     folder = find_folder_by_name(name)
     if not folder:
         raise HTTPException(status_code=404, detail="Folder not found")
-<<<<<<< HEAD
     
     # Get the folder with its subfolders and files just like get_folder endpoint
     folder_id = str(folder["_id"])
@@ -100,8 +90,6 @@ def search_folder(name: str):
     folder["subfolders"] = [serialize_folder(sf) for sf in subfolders]
     folder["files"] = [serialize_file(f) for f in files]
     
-=======
->>>>>>> 7d7965a8a8f79a00a483c955c56ca5b506b3762d
     return serialize_folder(folder)
 
 @app.post("/folders")
@@ -211,8 +199,4 @@ def delete_file(folder_id: str, file_id: str):
     result = files_col.delete_one({"_id": ObjectId(file_id), "folder_id": ObjectId(folder_id)})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="File not found")
-<<<<<<< HEAD
     return {"message": "File deleted successfully"}
-=======
-    return {"message": "File deleted successfully"}
->>>>>>> 7d7965a8a8f79a00a483c955c56ca5b506b3762d
