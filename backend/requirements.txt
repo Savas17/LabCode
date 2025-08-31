@@ -2,4 +2,7 @@ fastapi==0.100.0
 uvicorn[standard]==0.23.1
 pymongo==4.3.3
 python-dotenv==1.0.0
+<<<<<<< HEAD
 bson==0.5.10
+=======
+>>>>>>> e629e92932605a769ffa5ee9c5dbd135879a323a
