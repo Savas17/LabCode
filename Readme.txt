@@ -1,10 +1,9 @@
-Code Sharing App
+🚀 LabCode – Code Sharing Platform
 
-A simple Code Sharing Platform built with Python (FastAPI) and React.
-It allows users to create folders, add files, edit code, and search for folders – making it easy to organize and share coding projects.
+LabCode is a hassle-free code sharing app built with FastAPI (backend) and React (frontend).
+It allows users to create folders, add files, edit code, and search for folders – making it super easy to organize and share coding projects in labs, classrooms, or teams.
 
-🚀 Features
-
+✨ Features
 📁 Folder Management
 
 Create top-level folders
@@ -19,26 +18,29 @@ Add files inside folders
 
 Store file name, programming language, and code content
 
-Edit and update files
+Edit and update files easily
 
 🔍 Search
 
-Search for folders by name to quickly navigate
+Search for folders by name for quick navigation
 
 🛠️ Tech Stack
 
 Frontend: React + Axios + TailwindCSS
-Backend: Python (FastAPI)
-Database: In-memory (can be extended to SQLite/PostgreSQL)
 
-📦 Installation
-1. Clone the repository
+Backend: Python (FastAPI)
+
+Database: In-memory (extendable to SQLite/PostgreSQL)
+
+⚡ Getting Started
+1. Clone the Repository
 git clone https://github.com/your-username/code-sharing-app.git
 cd code-sharing-app
 
 2. Setup Backend (FastAPI)
 cd backend
 python -m venv venv
+# Activate venv
 source venv/bin/activate   # (Linux/Mac)
 venv\Scripts\activate      # (Windows)
 
@@ -46,25 +48,17 @@ pip install -r requirements.txt
 uvicorn app:app --reload
 
 
-Backend will run on 👉 http://localhost:8000
-
 3. Setup Frontend (React)
 cd frontend
 npm install
 npm run dev
 
 
-Frontend will run on 👉 http://localhost:5173 (Vite default)
-
-📸 Screenshots
-
 Top-level folders view
 
 Inside a folder (subfolders + files)
 
 File editing interface
-
-(Add screenshots here once ready)
 
 📌 API Endpoints
 Method	Endpoint	Description
@@ -82,8 +76,20 @@ GET	/folders/search/{name}	Search folder by name
 
 ✅ Real database integration (SQLite/PostgreSQL)
 
-✅ Syntax highlighting for code editor
+✅ Syntax highlighting in the code editor
 
-👨‍💻 Author
+👨‍💻 Authors
 
 Kasif Khan – Passionate about building web apps & AI tools 🚀
+
+Syed Saquib – Worked on backend & database integration ⚡
+
+👉 This version is:
+
+More readable with emojis + sections.
+
+Developer-friendly (copy-paste commands).
+
+Credits both of you.
+
+Highlights improvements (shows roadmap).
